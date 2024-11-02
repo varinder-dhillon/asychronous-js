@@ -52,27 +52,47 @@ const renderCountry = (data, className="") => {
         </article>
     `
     countriesContainer.insertAdjacentHTML("beforeend", html);
-    countriesContainer.style.opacity = 1;
+    // countriesContainer.style.opacity = 1;
+}
+
+const renderError = (error) => {
+    countriesContainer.insertAdjacentHTML("beforeend", `Something went wrong, ${error}.  Please try again later!!! :(`);
+    // countriesContainer.style.opacity = 1;
+}
+
+const getJson = (url, errMessage) => {
+    return fetch(url)
+    .then((response) => {
+        if(!response.ok) throw new Error(`${errMessage} (${response.status})`)
+        return response.json()
+    })
 }
 
 const getCountryData = (country) => {
-    fetch(`https://restcountries.com/v3.1/name/${country}`)
-    .then((response) => response.json())
+    getJson(`https://restcountries.com/v3.1/name/${country}`, "Country is not founded ")
     .then((data) => {
         renderCountry(data[0]);
-        const neighbour = data[0].borders[0]
+        // const neighbour = data[0].borders[0]
+        const neighbour = "sad"
         console.log(data[0]);
-        if(!neighbour) return;
+        if(!neighbour) throw new Error(`Country is not founded (${response.status})`);
 
-        return fetch(`https://restcountries.com/v3.1/alpha/${neighbour}`)
+        // return fetch(`https://restcountries.com/v3.1/alpha/${neighbour}`)
+        return  getJson(`https://restcountries.com/v3.1/alpha/${neighbour}`, "Country is not founded ")
     })
-    .then((response) => response.json())
     .then((data)=>{
         console.log(data);
-        
         renderCountry(data[0], "neighbour");
     })
-
+    .catch((err)=>{
+        renderError(err.message)
+        console.log(err.message);
+    }).finally(()=>{
+        countriesContainer.style.opacity = 1;
+    })
 }
 
-getCountryData("nepal")
+
+btn.addEventListener('click', function(){
+    getCountryData("nepal");
+});
